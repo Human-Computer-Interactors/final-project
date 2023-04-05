@@ -1,27 +1,23 @@
 import type { FunctionComponent } from "react";
-import { Pressable, Text, StyleSheet, Platform } from "react-native";
+import { Pressable, Text, StyleSheet } from "react-native";
 import {
   NestableDraggableFlatList,
   ShadowDecorator
 } from "react-native-draggable-flatlist";
+import AnimatedPressable from "./AnimatedPressable";
 import { Colors } from "../types/Colors";
-import { selectionAsync } from "expo-haptics";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FontSize } from "../types/Layout";
 import { reorderTracks } from "../redux/mixesSlice";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import type { NavigatorProps } from "../navigation/StackNavigator";
+import { hapticSelect } from "../utilities";
 
 type DraggableTracksProps = Pick<NavigatorProps<"Mix">, "navigation"> & {
   mixId: string,
   mix: Mix,
   selectedTrack: number | null,
   setSelectedTrack: (index: number | null) => void
-}
-
-const hapticSelect = async () => {
-  if (Platform.OS === "web") return;
-  return selectionAsync();
 }
 
 const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, mixId, mix, selectedTrack, setSelectedTrack }) => {
@@ -43,7 +39,7 @@ const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, 
           elevation={-10}
           radius={5}
         >
-          <Pressable
+          <AnimatedPressable
             onPress={() => setSelectedTrack(getIndex() === selectedTrack ? null : getIndex())}
             onLongPress={() => (
               hapticSelect().then(() => (
@@ -53,12 +49,11 @@ const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, 
                 )
               ))
             )}
-            style={({pressed}) => [
+            style={[
               styles.trackPressable,
               selectedTrack === null || selectedTrack === getIndex()
                 ? {backgroundColor: Colors[tracks[item.id].color]}
-                : {},
-              pressed ? styles.trackPressed : {}
+                : {}
             ]}
           >
             <Text style={styles.trackText}>
@@ -72,10 +67,10 @@ const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, 
               <Ionicons
                 name={"reorder-two-outline"}
                 color={"#000"}
-                size={FontSize.ICON}
+                size={FontSize.SMALL_ICON}
               />
             </Pressable>
-          </Pressable>
+          </AnimatedPressable>
         </ShadowDecorator>
       )}
     />
@@ -98,9 +93,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center"
-  },
-  trackPressed: {
-    opacity: 0.5
   },
   trackText: {
     fontSize: FontSize.BODY,

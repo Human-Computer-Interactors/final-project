@@ -1,5 +1,6 @@
 import type { FunctionComponent } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
+import AnimatedPressable from "./AnimatedPressable";
 import { FontSize } from "../types/Layout";
 import type { NavigatorProps } from "../navigation/StackNavigator";
 import { useAppSelector } from "../redux/hooks";
@@ -11,9 +12,9 @@ const MixCard: FunctionComponent<MixCardProps> = ({ id, title, team, tracks, ima
   const trackData = useAppSelector(({ tracks }) => tracks);
   const uniqueTracks = Object.keys(trackData).filter((trackId) => tracks.findIndex(({ id }) => id === trackId) >= 0);
   return (
-    <Pressable
-      style={({pressed}) => [styles.card, pressed ? styles.cardPressed : {}]}
-      onPress={() => navigation.navigate("Mix", {mixId: id})}
+    <AnimatedPressable
+      style={styles.card}
+      onPress={() => navigation.navigate("Mix", { mixId: id })}
     >
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
@@ -35,7 +36,7 @@ const MixCard: FunctionComponent<MixCardProps> = ({ id, title, team, tracks, ima
           );
         })}
       </View>
-    </Pressable>
+    </AnimatedPressable>
   )
 };
 
@@ -47,9 +48,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     margin: 5
-  },
-  cardPressed: {
-    opacity: 0.5
   },
   header: {
     flexDirection: "row",

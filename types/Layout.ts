@@ -3,6 +3,7 @@ export enum FontSize {
   TITLE = 18,
   SUBHEADER = 24,
   HEADER = 30,
-  ICON = 28,
+  SMALL_ICON = 28,
+  MEDIUM_ICON = 32,
   LARGE_ICON = 42
 }

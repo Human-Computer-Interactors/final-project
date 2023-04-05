@@ -1,3 +1,6 @@
+import { Platform } from "react-native";
+import { selectionAsync } from "expo-haptics";
+
 export const objectToArray = <T>(mixes: StringToTypeMap<T>): (T & { id: string })[] => (
   Object.keys(mixes).map((id) => ({
     id,
@@ -16,3 +19,8 @@ export const shallowEqual = <T>(o1: StringToTypeMap<T>, o2: StringToTypeMap<T>):
   }
   return true;
 };
+
+export const hapticSelect = async () => {
+  if (Platform.OS === "web") return;
+  return selectionAsync();
+}

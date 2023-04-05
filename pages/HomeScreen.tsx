@@ -30,10 +30,7 @@ const HomeScreen: FunctionComponent<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={[styles.mixesContainer, { paddingTop: top + 10 }]}
         data={mixes}
         renderItem={({ item }: ListRenderItemInfo<MixWithId>) => (
-          <MixCard
-            navigation={navigation}
-            {...item}
-          />
+          <MixCard navigation={navigation} {...item} />
         )}
         keyExtractor={(mix) => mix.id}
       />

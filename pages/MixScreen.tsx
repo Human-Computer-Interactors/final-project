@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontSize } from "../types/Layout";
 import { useAppSelector } from "../redux/hooks";
 import ClipsViewer from "../components/ClipsViewer";
+import MediaControls from "../components/MediaControls";
 import DraggableTracks from "../components/DraggableTracks";
 import IconButton from "../components/IconButton";
 
@@ -19,6 +20,7 @@ type MixScreenProps = NavigatorProps<"Mix">;
 
 const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => {
   const [selectedTrack, setSelectedTrack] = useState<number | null>(null);
+  const [playing, setPlaying] = useState<boolean>(false);
 
   const { mixId } = route.params;
   const mix = useAppSelector(({ mixes }) => mixes[mixId]);
@@ -43,6 +45,7 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
         <Text style={styles.title}>{mix.title}</Text>
         <Text style={styles.artist}>{mix.team}</Text>
         <ClipsViewer selectedTrack={selectedTrack} mixId={mixId} />
+        <MediaControls playing={playing} setPlaying={setPlaying} />
         <DraggableTracks
           navigation={navigation}
           mixId={mixId}

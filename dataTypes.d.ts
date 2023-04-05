@@ -1,5 +1,6 @@
-type Track = {
+type TrackMetadata = {
   title: string,
+  artist: string,
   file: string,
   color: string
 };
