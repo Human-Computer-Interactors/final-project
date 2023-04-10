@@ -22,6 +22,6 @@ export default AnimatedPressable;
 
 const styles = StyleSheet.create({
   pressed: {
-    opacity: 0.6
+    opacity: 0.5
   }
 });

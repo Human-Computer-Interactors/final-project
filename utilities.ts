@@ -20,7 +20,21 @@ export const shallowEqual = <T>(o1: StringToTypeMap<T>, o2: StringToTypeMap<T>):
   return true;
 };
 
+export const range = (size: number, startAt: number = 0, step: number = 1): number[] => (
+  [...Array(size).keys()].map((i) => i * step + startAt)
+);
+
 export const hapticSelect = async () => {
   if (Platform.OS === "web") return;
   return selectionAsync();
 }
+
+export const modulo = (x, y) => ((x % y) + y) % y;
+
+export const prefixSums = (arr: number[]): number[] => {
+  const sums = [0];
+  for (let i = 0; i < arr.length; i++) {
+    sums.push(sums[i] + arr[i]);
+  }
+  return sums;
+};

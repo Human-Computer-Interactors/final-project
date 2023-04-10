@@ -1,6 +1,7 @@
 import type { FunctionComponent } from "react";
 import { Pressable, Text, StyleSheet } from "react-native";
 import {
+  DragEndParams,
   NestableDraggableFlatList,
   ShadowDecorator
 } from "react-native-draggable-flatlist";
@@ -8,30 +9,28 @@ import AnimatedPressable from "./AnimatedPressable";
 import { Colors } from "../types/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FontSize } from "../types/Layout";
-import { reorderTracks } from "../redux/mixesSlice";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useAppSelector } from "../redux/hooks";
 import type { NavigatorProps } from "../navigation/StackNavigator";
 import { hapticSelect } from "../utilities";
 
 type DraggableTracksProps = Pick<NavigatorProps<"Mix">, "navigation"> & {
   mixId: string,
   mix: Mix,
-  selectedTrack: number | null,
-  setSelectedTrack: (index: number | null) => void
+  reorder: (params: DragEndParams<TrackSegment>) => void,
+  selectedTrack: number,
+  selectedMode: boolean,
+  selectTrack: (index: number) => void,
+  deselectTrack: () => void
 }
 
-const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, mixId, mix, selectedTrack, setSelectedTrack }) => {
-  const dispatch = useAppDispatch();
+const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, mixId, mix, reorder, selectedTrack, selectedMode, selectTrack, deselectTrack }) => {
   const tracks = useAppSelector(({ tracks }) => tracks);
   return (
     <NestableDraggableFlatList
       data={mix.tracks}
       contentContainerStyle={styles.tracks}
       keyExtractor={(segment) => `${segment.id}-${segment.start}-${segment.end}`}
-      onDragEnd={({ data, to}) => {
-        dispatch(reorderTracks({ mixId, tracks: data }));
-        setSelectedTrack(to);
-      }}
+      onDragEnd={reorder}
       renderItem={({item, drag, getIndex}) => (
         <ShadowDecorator
           color={"#000"}
@@ -40,7 +39,10 @@ const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, 
           radius={5}
         >
           <AnimatedPressable
-            onPress={() => setSelectedTrack(getIndex() === selectedTrack ? null : getIndex())}
+            onPressIn={() => {
+              if (selectedMode && getIndex() === selectedTrack) deselectTrack();
+              else selectTrack(getIndex());
+            }}
             onLongPress={() => (
               hapticSelect().then(() => (
                 navigation.navigate(
@@ -51,8 +53,8 @@ const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, 
             )}
             style={[
               styles.trackPressable,
-              selectedTrack === null || selectedTrack === getIndex()
-                ? {backgroundColor: Colors[tracks[item.id].color]}
+              !selectedMode || selectedTrack === getIndex()
+                ? { backgroundColor: Colors[tracks[item.id].color] }
                 : {}
             ]}
           >

@@ -4,8 +4,7 @@ import {
   View,
   Text,
   FlatList,
-  ListRenderItemInfo,
-  Pressable
+  ListRenderItemInfo
 } from "react-native";
 import MixCard from "../components/MixCard";
 import { FontSize } from "../types/Layout";

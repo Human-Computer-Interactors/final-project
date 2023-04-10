@@ -13,13 +13,16 @@ type MediaIconProps = {
 
 type MediaControlsProps = {
   playing: boolean,
-  setPlaying: (value: boolean) => void
+  play: () => void,
+  pause: () => void,
+  skipForward: () => void,
+  skipBackward: () => void
 };
 
 const MediaIcon: FunctionComponent<MediaIconProps> = ({ iconName, size, onPress }) => (
   <AnimatedPressable
     style={styles.button}
-    onPress={() => hapticSelect().then(onPress)}
+    onPressIn={() => hapticSelect().then(onPress)}
   >
     <Ionicons
       name={iconName}
@@ -29,17 +32,17 @@ const MediaIcon: FunctionComponent<MediaIconProps> = ({ iconName, size, onPress 
   </AnimatedPressable>
 )
 
-const MediaControls: FunctionComponent<MediaControlsProps> = ({ playing, setPlaying }) => {
+const MediaControls: FunctionComponent<MediaControlsProps> = ({ playing, play, pause, skipForward, skipBackward }) => {
   return (
     <View style={styles.container}>
       {/*<MediaIcon iconName={"play-skip-back-outline"} />*/}
-      <MediaIcon iconName={"play-back-outline"} />
+      <MediaIcon iconName={"play-back-outline"} onPress={skipBackward} />
       <MediaIcon
         iconName={playing ? "pause-outline" : "play-outline"}
         size={FontSize.LARGE_ICON}
-        onPress={() => setPlaying(!playing)}
+        onPress={playing ? pause : play}
       />
-      <MediaIcon iconName={"play-forward-outline"} />
+      <MediaIcon iconName={"play-forward-outline"} onPress={skipForward} />
       {/*<MediaIcon iconName={"play-skip-forward-outline"} />*/}
     </View>
   )

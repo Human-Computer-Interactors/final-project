@@ -1,7 +1,7 @@
 type TrackMetadata = {
   title: string,
   artist: string,
-  file: string,
+  url: string,
   color: string
 };
 
