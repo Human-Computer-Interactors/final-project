@@ -1,7 +1,6 @@
 import type { FunctionComponent } from "react";
 import { useState } from "react";
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +9,7 @@ import {
 } from "react-native";
 import type { NavigatorProps } from "../navigation/StackNavigator";
 import IconButton from "../components/IconButton";
+import AnimatedPressable from "../components/AnimatedPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { FontSize } from "../types/Layout";
@@ -78,12 +78,9 @@ const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreen> = ({ rou
           </View>
         ))}
       </View>
-      <Pressable style={({ pressed }) => [
-        styles.saveButton,
-        pressed ? styles.buttonPressed : {}
-      ]} onPress={update}>
+      <AnimatedPressable style={styles.saveButton} onPress={update}>
         <Text style={styles.saveButtonText}>Save</Text>
-      </Pressable>
+      </AnimatedPressable>
     </ScrollView>
   );
 };
@@ -130,9 +127,6 @@ const styles = StyleSheet.create({
   saveButton: {
     padding: 10,
     backgroundColor: "#000"
-  },
-  buttonPressed: {
-    opacity: 0.5
   },
   saveButtonText: {
     color: "#fff",

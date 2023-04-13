@@ -4,8 +4,7 @@ import {
   View,
   Text,
   FlatList,
-  ListRenderItemInfo,
-  Pressable
+  ListRenderItemInfo
 } from "react-native";
 import MixCard from "../components/MixCard";
 import { FontSize } from "../types/Layout";
@@ -30,10 +29,7 @@ const HomeScreen: FunctionComponent<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={[styles.mixesContainer, { paddingTop: top + 10 }]}
         data={mixes}
         renderItem={({ item }: ListRenderItemInfo<MixWithId>) => (
-          <MixCard
-            navigation={navigation}
-            {...item}
-          />
+          <MixCard navigation={navigation} {...item} />
         )}
         keyExtractor={(mix) => mix.id}
       />
