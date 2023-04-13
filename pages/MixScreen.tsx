@@ -1,7 +1,13 @@
 import type { FunctionComponent } from "react";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
-import { NestableScrollContainer, DragEndParams } from "react-native-draggable-flatlist";
+import {
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  Platform
+} from "react-native";
+import type { DragEndParams } from "react-native-draggable-flatlist";
 import type { NavigatorProps } from "../navigation/StackNavigator";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontSize } from "../types/Layout";
@@ -11,7 +17,7 @@ import ClipsViewer from "../components/ClipsViewer";
 import MediaControls from "../components/MediaControls";
 import DraggableTracks from "../components/DraggableTracks";
 import IconButton from "../components/IconButton";
-import TrackPlayer, { RepeatMode } from "react-native-track-player";
+import TrackPlayer from "react-native-track-player";
 import { range, modulo } from "../utilities";
 
 type MixScreenProps = NavigatorProps<"Mix">;
@@ -23,13 +29,14 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
   const [selectedMode, setSelectedMode] = useState<boolean>(false);
   const [playing, setPlaying] = useState<boolean>(false);
   const [playTimer, setPlayTimer] = useState<NodeJS.Timeout | null>(null);
+  const [playerHeight, setPlayerHeight] = useState<number>(0);
 
   const { mixId } = route.params;
   const mix = useAppSelector(({ mixes }) => mixes[mixId]);
   const tracks = useAppSelector(({ tracks }) => tracks);
   const dispatch = useAppDispatch();
   const { top, bottom } = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
 
   const skipTo = async (position: number, relative: boolean = true, timeOffset: number = 0, startPlaying: boolean = false) => {
     let index = position;
@@ -87,11 +94,9 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
       await skipTo(index, false);
     }
     setSelectedMode(true);
-    await TrackPlayer.setRepeatMode(RepeatMode.Track);
   }
 
   const deselectTrack = async () => {
-    await TrackPlayer.setRepeatMode(RepeatMode.Queue);
     setSelectedMode(false);
   };
 
@@ -131,7 +136,6 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
     const setUpQueue = async () => {
       await TrackPlayer.reset();
       await TrackPlayer.add(mix.tracks.map(({ id }) => tracks[id]));
-      await TrackPlayer.setRepeatMode(RepeatMode.Queue);
       await TrackPlayer.skip(0);
     }
     setUpQueue();
@@ -140,6 +144,7 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
     };
   }, []);
 
+  // Adjust timer to repeat instead of skipping to next track in selected mode
   useEffect(() => {
     if (!playing) return;
     const changeToFromRepeat = async (selectedMode: boolean) => {
@@ -157,14 +162,10 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
   }, [selectedMode]);
 
   return (
-    <View style={styles.container}>
-      <NestableScrollContainer
-        alwaysBounceVertical={false}
-        contentContainerStyle={[
-          styles.contentContainer,
-          { paddingTop: top, paddingBottom: bottom + 60 }
-        ]}
-      >
+    <View style={[styles.container, { paddingTop: top, height }]}>
+      <View style={styles.contentContainer} onLayout={(e) => {
+        setPlayerHeight(e.nativeEvent.layout.height);
+      }}>
         <IconButton
           style={styles.backButton}
           iconName={"chevron-back"}
@@ -173,33 +174,38 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
         />
         <Text style={styles.title}>{mix.title}</Text>
         <Text style={styles.artist}>{mix.team}</Text>
-        <ClipsViewer
-          currentTrack={currentTrack}
-          selectedMode={selectedMode}
-          playing={playing}
-          playTimer={playTimer}
-          mixId={mixId}
-          pause={pause}
-          skipTo={skipTo}
-        />
-        <MediaControls
-          playing={playing}
-          play={play}
-          pause={pause}
-          skipForward={skipForward}
-          skipBackward={skipBackward}
-        />
-        <DraggableTracks
-          navigation={navigation}
-          mixId={mixId}
-          mix={mix}
-          reorder={reorderQueue}
-          selectedTrack={currentTrack}
-          selectedMode={selectedMode}
-          selectTrack={selectTrack}
-          deselectTrack={deselectTrack}
-        />
-      </NestableScrollContainer>
+        {Platform.OS !== "web" && (
+          <>
+            <ClipsViewer
+              currentTrack={currentTrack}
+              selectedMode={selectedMode}
+              playing={playing}
+              playTimer={playTimer}
+              mixId={mixId}
+              pause={pause}
+              skipTo={skipTo}
+            />
+            <MediaControls
+              playing={playing}
+              play={play}
+              pause={pause}
+              skipForward={skipForward}
+              skipBackward={skipBackward}
+            />
+          </>
+        )}
+      </View>
+      <DraggableTracks
+        navigation={navigation}
+        mixId={mixId}
+        mix={mix}
+        playerHeight={playerHeight}
+        reorder={reorderQueue}
+        currentTrack={currentTrack}
+        selectedMode={selectedMode}
+        selectTrack={selectTrack}
+        deselectTrack={deselectTrack}
+      />
       <IconButton
         style={{
           ...styles.addButton, bottom: bottom + 10, left: (width - 50) / 2
@@ -216,10 +222,11 @@ export default MixScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    justifyContent: "space-between"
   },
   contentContainer: {
-    alignItems: "stretch"
+    marginBottom: 20
   },
   backButton: {
     margin: 10,

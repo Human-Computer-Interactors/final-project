@@ -22,7 +22,7 @@ type MediaControlsProps = {
 const MediaIcon: FunctionComponent<MediaIconProps> = ({ iconName, size, onPress }) => (
   <AnimatedPressable
     style={styles.button}
-    onPressIn={() => hapticSelect().then(onPress)}
+    onPress={() => hapticSelect().then(onPress)}
   >
     <Ionicons
       name={iconName}

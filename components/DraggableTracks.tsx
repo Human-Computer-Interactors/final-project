@@ -1,10 +1,19 @@
+import { useEffect, useRef, useState } from "react";
 import type { FunctionComponent } from "react";
-import { Pressable, Text, StyleSheet } from "react-native";
 import {
+  Pressable,
+  Text,
+  StyleSheet,
+  FlatList,
+  useWindowDimensions,
+  Platform,
+  LayoutChangeEvent
+} from "react-native";
+import DraggableFlatList, {
   DragEndParams,
-  NestableDraggableFlatList,
   ShadowDecorator
 } from "react-native-draggable-flatlist";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedPressable from "./AnimatedPressable";
 import { Colors } from "../types/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -16,22 +25,70 @@ import { hapticSelect } from "../utilities";
 type DraggableTracksProps = Pick<NavigatorProps<"Mix">, "navigation"> & {
   mixId: string,
   mix: Mix,
+  playerHeight: number
   reorder: (params: DragEndParams<TrackSegment>) => void,
-  selectedTrack: number,
+  currentTrack: number,
   selectedMode: boolean,
   selectTrack: (index: number) => void,
   deselectTrack: () => void
 }
 
-const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, mixId, mix, reorder, selectedTrack, selectedMode, selectTrack, deselectTrack }) => {
+const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, mixId, mix, playerHeight, reorder, currentTrack, selectedMode, selectTrack, deselectTrack }) => {
+  const scrollRef = useRef<FlatList<TrackSegment>>(null);
+  const [pressableHeight, setPressableHeight] = useState(0);
+  const { top, bottom } = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const tracks = useAppSelector(({ tracks }) => tracks);
+
+  const tracksHeight = height - top - playerHeight;
+
+  const editTrack = (index: number) => {
+    hapticSelect().then(() => {
+      navigation.navigate(
+        "EditTrackSegment",
+        { mixId, trackIndex: index }
+      );
+    });
+  };
+
+  const onPress = (index: number) => {
+    // Don't allow track selection on web, just open edit track screen
+    if (Platform.OS === "web") {
+      editTrack(index);
+    } else if (selectedMode && index === currentTrack) {
+      deselectTrack();
+    } else {
+      selectTrack(index);
+    }
+  };
+
+  const getPressableHeight = (e: LayoutChangeEvent, index: number) => {
+    if (index === 0) {
+      setPressableHeight(e.nativeEvent.layout.height);
+    }
+  };
+
+  useEffect(() => {
+    scrollRef.current?.scrollToIndex({
+      index: currentTrack,
+      animated: true
+    })
+  }, [currentTrack]);
+
   return (
-    <NestableDraggableFlatList
-      data={mix.tracks}
-      contentContainerStyle={styles.tracks}
+    <DraggableFlatList
+      scrollEnabled
+      // @ts-ignore
+      ref={scrollRef}
+      style={[styles.container, { height: tracksHeight }]}
+      contentContainerStyle={[
+        styles.tracks,
+        { paddingBottom: Platform.OS === "web" ? bottom + 70 : tracksHeight - pressableHeight }
+      ]}
       keyExtractor={(segment) => `${segment.id}-${segment.start}-${segment.end}`}
       onDragEnd={reorder}
-      renderItem={({item, drag, getIndex}) => (
+      data={mix.tracks}
+      renderItem={({ item, drag, getIndex }) => (
         <ShadowDecorator
           color={"#000"}
           opacity={0.5}
@@ -39,21 +96,12 @@ const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, 
           radius={5}
         >
           <AnimatedPressable
-            onPressIn={() => {
-              if (selectedMode && getIndex() === selectedTrack) deselectTrack();
-              else selectTrack(getIndex());
-            }}
-            onLongPress={() => (
-              hapticSelect().then(() => (
-                navigation.navigate(
-                  "EditTrackSegment",
-                  { mixId, trackIndex: getIndex() }
-                )
-              ))
-            )}
+            onLayout={(e) => getPressableHeight(e, getIndex())}
+            onPress={() => onPress(getIndex())}
+            onLongPress={() => editTrack(getIndex())}
             style={[
               styles.trackPressable,
-              !selectedMode || selectedTrack === getIndex()
+              !selectedMode || currentTrack === getIndex()
                 ? { backgroundColor: Colors[tracks[item.id].color] }
                 : {}
             ]}
@@ -82,10 +130,12 @@ const DraggableTracks: FunctionComponent<DraggableTracksProps> = ({ navigation, 
 export default DraggableTracks;
 
 const styles = StyleSheet.create({
+  container: {
+    height: 300
+  },
   tracks: {
     justifyContent: "center",
-    alignItems: "stretch",
-    paddingVertical: 10,
+    alignItems: "stretch"
   },
   trackPressable: {
     padding: 10,
