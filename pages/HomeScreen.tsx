@@ -14,7 +14,6 @@ import type { NavigatorProps } from "../navigation/StackNavigator";
 import IconButton from "../components/IconButton";
 import { objectToArray } from "../utilities";
 import { useAppSelector } from "../redux/hooks";
-import { SvgXml } from "react-native-svg";
 
 type HomeScreenProps = NavigatorProps<"Home">;
 
