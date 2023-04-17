@@ -1,11 +1,11 @@
 import type { FunctionComponent } from "react";
 import { useEffect, useState, useRef } from "react";
 import {
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-  Platform
+	StyleSheet,
+	Text,
+	useWindowDimensions,
+	View,
+	Platform,
 } from "react-native";
 import type { DragEndParams } from "react-native-draggable-flatlist";
 import type { ScreenProps } from "../navigation/StackNavigator";
@@ -34,12 +34,12 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
   const [playTimer, setPlayTimer] = useState<NodeJS.Timeout | null>(null);
   const [playerHeight, setPlayerHeight] = useState<number>(0);
 
-  const { mixId } = route.params;
-  const mix = useAppSelector(({ mixes }) => mixes[mixId]);
-  const tracks = useAppSelector(({ tracks }) => tracks);
-  const dispatch = useAppDispatch();
-  const { top, bottom } = useSafeAreaInsets();
-  const { height, width } = useWindowDimensions();
+	const { mixId } = route.params;
+	const mix = useAppSelector(({ mixes }) => mixes[mixId]);
+	const tracks = useAppSelector(({ tracks }) => tracks);
+	const dispatch = useAppDispatch();
+	const { top, bottom } = useSafeAreaInsets();
+	const { height, width } = useWindowDimensions();
 
   const skipTo = async (position: number, relative: boolean = true, timeOffset: number = 0, startPlaying: boolean = false) => {
     let index = position;
@@ -83,23 +83,23 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
     setPlayTimer(timerId);
   };
 
-  const pause = async () => {
-    clearTimeout(playTimer);
-    await TrackPlayer.pause();
-    setPlaying(false);
-  };
+	const pause = async () => {
+		clearTimeout(playTimer);
+		await TrackPlayer.pause();
+		setPlaying(false);
+	};
 
-  const selectTrack = async (index: number) => {
-    if (index !== currentTrack) {
-      setCurrentTrack(index);
-      await skipTo(index, false);
-    }
-    setSelectedMode(true);
-  }
+	const selectTrack = async (index: number) => {
+		if (index !== currentTrack) {
+			setCurrentTrack(index);
+			await skipTo(index, false);
+		}
+		setSelectedMode(true);
+	};
 
-  const deselectTrack = async () => {
-    setSelectedMode(false);
-  };
+	const deselectTrack = async () => {
+		setSelectedMode(false);
+	};
 
   const reorderQueue = async ({ data, from, to } : DragEndParams<TrackSegment>) => {
     if (from === to) return;
@@ -240,45 +240,50 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
 export default MixScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "space-between"
-  },
-  contentContainer: {
-    marginBottom: 20
-  },
-  backButton: {
-    margin: 10,
-    alignSelf: "flex-start"
-  },
-  title: {
-    fontSize: FontSize.HEADER,
-    textAlign: "center"
-  },
-  artist: {
-    fontSize: FontSize.SUBHEADER,
-    fontStyle: "italic",
-    textAlign: "center"
-  },
-  blackBox: {
-    backgroundColor: "#000",
-    padding: 10,
-    marginTop: 20,
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  blackBoxText: {
-    color: "#fff"
-  },
-  addButton: {
-    position: "absolute",
-    backgroundColor: "#000",
-    width: 50,
-    height: 50,
-    borderRadius: 10000
-  },
-  addIcon: {
-    marginLeft: 3
-  }
+	container: {
+		flex: 1,
+		justifyContent: "space-between",
+		backgroundColor: "transparent",
+		backgroundImage: "linear-gradient(to bottom, #292929, #0D252D)",
+	},
+	contentContainer: {
+		marginBottom: 20,
+	},
+	backButton: {
+		margin: 10,
+		alignSelf: "flex-start",
+		color: "#758A8D",
+	},
+	title: {
+		fontSize: FontSize.HEADER,
+		textAlign: "center",
+		color: "#fff",
+	},
+	artist: {
+		fontSize: FontSize.SUBHEADER,
+		fontStyle: "italic",
+		textAlign: "center",
+		color: "#C6C6C6",
+	},
+	blackBox: {
+		backgroundColor: "#000",
+		padding: 10,
+		marginTop: 20,
+		height: 200,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	blackBoxText: {
+		color: "#fff",
+	},
+	addButton: {
+		position: "absolute",
+		backgroundColor: "#000",
+		width: 50,
+		height: 50,
+		borderRadius: 10000,
+	},
+	addIcon: {
+		marginLeft: 3,
+	},
 });

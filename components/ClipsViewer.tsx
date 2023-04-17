@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
-  View,
-  StyleSheet,
-  FlatList,
-  useWindowDimensions,
-  Animated,
-  Easing
+	View,
+	StyleSheet,
+	FlatList,
+	useWindowDimensions,
+	Animated,
+	Easing,
 } from "react-native";
 import { useAppSelector } from "../redux/hooks";
 import type { FunctionComponent } from "react";
@@ -13,13 +13,18 @@ import { Colors } from "../types/Colors";
 import { range, prefixSums } from "../utilities";
 
 type ClipsViewerProps = {
-  currentTrack: number,
-  selectedMode: boolean,
-  playing: boolean,
-  playTimer: NodeJS.Timeout | null,
-  mixId: string,
-  pause: () => void,
-  skipTo: (position: number, relative: boolean, timeOffset: number, startPlaying: boolean) => void,
+	currentTrack: number;
+	selectedMode: boolean;
+	playing: boolean;
+	playTimer: NodeJS.Timeout | null;
+	mixId: string;
+	pause: () => void;
+	skipTo: (
+		position: number,
+		relative: boolean,
+		timeOffset: number,
+		startPlaying: boolean
+	) => void;
 };
 
 const ONE_SECOND_WIDTH = 5;
@@ -195,24 +200,24 @@ const ClipsViewer: FunctionComponent<ClipsViewerProps> = ({ currentTrack, select
 export default ClipsViewer;
 
 const styles = StyleSheet.create({
-  container: {
-    marginVertical: 10
-  },
-  pointer: {
-    position: "absolute",
-    height: "100%",
-    width: 2,
-    backgroundColor: "#000",
-    zIndex: 100
-  },
-  contentContainer: {
-    flexDirection: "row",
-    paddingHorizontal: "50%"
-  },
-  trackSegment: {
-    backgroundColor: "#fff",
-    height: 150,
-    marginVertical: 50,
-    borderWidth: 1
-  }
-})
+	container: {
+		marginVertical: 10,
+	},
+	pointer: {
+		position: "absolute",
+		height: "100%",
+		width: 2,
+		backgroundColor: "#000",
+		zIndex: 100,
+	},
+	contentContainer: {
+		flexDirection: "row",
+		paddingHorizontal: "50%",
+	},
+	trackSegment: {
+		backgroundColor: "#fff",
+		height: 150,
+		marginVertical: 50,
+		borderWidth: 1,
+	},
+});
