@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import type { FunctionComponent } from "react";
+import { FunctionComponent, useEffect, useRef, useState} from "react";
 import {
   Pressable,
   Text,
@@ -19,10 +18,10 @@ import { Colors } from "../types/Colors";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { FontSize } from "../types/Layout";
 import { useAppSelector } from "../redux/hooks";
-import type { NavigatorProps } from "../navigation/StackNavigator";
+import type { ScreenProps } from "../navigation/StackNavigator";
 import { hapticSelect } from "../utilities";
 
-type DraggableTracksProps = Pick<NavigatorProps<"Mix">, "navigation"> & {
+type DraggableTracksProps = Pick<ScreenProps<"Mix">, "navigation"> & {
   mixId: string,
   mix: Mix,
   playerHeight: number

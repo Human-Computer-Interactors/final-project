@@ -26,6 +26,7 @@ const ONE_SECOND_WIDTH = 5;
 
 const ClipsViewer: FunctionComponent<ClipsViewerProps> = ({ currentTrack, selectedMode, playing, playTimer, mixId, pause, skipTo }) => {
   const scrollRef = useRef<FlatList>(null);
+  const prevContentWidth = useRef<number>(0);
   const scrollAnimation = useRef<Animated.Value>(new Animated.Value(0));
   const [contentWidth, setContentWidth] = useState<number>(0);
   const [scrollOffset, setScrollOffset] = useState<number>(0);
@@ -124,21 +125,22 @@ const ClipsViewer: FunctionComponent<ClipsViewerProps> = ({ currentTrack, select
   }, []);
 
   useEffect(() => {
-    if (contentWidth) {
-      if (playing) {
-        scrollAnimation.current.removeAllListeners();
-        scrollAnimation.current = new Animated.Value(scrollOffset);
-        scrollAnimation.current.addListener((animation) => {
-          scrollRef.current?.scrollToOffset({
-            offset: animation.value,
-            animated: false
-          });
+    if (!contentWidth) return;
+    if (playing) {
+      scrollAnimation.current.removeAllListeners();
+      scrollAnimation.current = new Animated.Value(scrollOffset);
+      scrollAnimation.current.addListener((animation) => {
+        scrollRef.current?.scrollToOffset({
+          offset: animation.value,
+          animated: false
         });
-        playingAnimation().start();
-      } else {
-        scrollAnimation.current.stopAnimation();
-      }
+      });
+      playingAnimation().start();
+    } else if (prevContentWidth.current === contentWidth) {
+      // Animation should only be stopped if playing changes (not if content width changes)
+      scrollAnimation.current.stopAnimation();
     }
+    prevContentWidth.current = contentWidth;
   }, [contentWidth, playing]);
 
   useEffect(() => {
@@ -154,6 +156,11 @@ const ClipsViewer: FunctionComponent<ClipsViewerProps> = ({ currentTrack, select
       skip();
     }
   }, [playTimer]);
+
+  useEffect(() => {
+    // Skip back to start of track if track segments change
+    skip();
+  }, [trackSegments]);
 
   return (
     <View style={styles.container}>

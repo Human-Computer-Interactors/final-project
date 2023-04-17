@@ -3,7 +3,7 @@ import uuid from "react-native-uuid";
 import { shallowEqual } from "../utilities";
 import mixesData from "../data/mixes";
 
-type MixesState = StringToTypeMap<Mix>;
+type MixesState = Record<string, Mix>;
 
 const initialState: MixesState = mixesData;
 

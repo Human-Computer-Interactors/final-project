@@ -1,5 +1,5 @@
 import type { FunctionComponent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,7 +8,7 @@ import {
   Platform
 } from "react-native";
 import type { DragEndParams } from "react-native-draggable-flatlist";
-import type { NavigatorProps } from "../navigation/StackNavigator";
+import type { ScreenProps } from "../navigation/StackNavigator";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontSize } from "../types/Layout";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
@@ -18,11 +18,14 @@ import MediaControls from "../components/MediaControls";
 import DraggableTracks from "../components/DraggableTracks";
 import IconButton from "../components/IconButton";
 import TrackPlayer from "react-native-track-player";
-import { range, modulo } from "../utilities";
+import { range, modulo, hapticSelect } from "../utilities";
 
-type MixScreenProps = NavigatorProps<"Mix">;
+type MixScreenProps = ScreenProps<"Mix">;
 
 const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => {
+  const prevTracks = useRef<TrackSegment[]>(null);
+  // Used to check updated value of playing in timeout callbacks
+  const playRef = useRef<boolean>(false);
   // Index of current track being played
   const [currentTrack, setCurrentTrack] = useState<number>(0);
   // Whether player is in "Selected Mode" (will repeat single track segment)
@@ -54,18 +57,17 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
       await TrackPlayer.play();
       setPlaying(true);
     }
-    if (playing || startPlaying) {
+    if (playRef.current || startPlaying) {
       const timeoutId = setTimeout(
         selectedMode ? repeat : skipForward,
-        (mixTrack.end - start) * 1000,
-        true
+        (mixTrack.end - start) * 1000
       );
       clearTimeout(playTimer);
       setPlayTimer(timeoutId);
     }
   }
 
-  const repeat = (startPlaying: boolean) => skipTo(0, true, 0, startPlaying);
+  const repeat = () => skipTo(0, true, 0);
   const skipForward = () => skipTo(1);
   const skipBackward = () => skipTo(-1);
 
@@ -76,8 +78,7 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
     setPlaying(true);
     const timerId = setTimeout(
       selectedMode ? repeat : skipForward,
-      (mix.tracks[track].end - pos) * 1000,
-      true
+      (mix.tracks[track].end - pos) * 1000
     );
     setPlayTimer(timerId);
   };
@@ -102,6 +103,8 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
 
   const reorderQueue = async ({ data, from, to } : DragEndParams<TrackSegment>) => {
     if (from === to) return;
+    prevTracks.current = data;
+    dispatch(reorderTracks({ mixId, tracks: data }));
     // Special handling if moving the current track (to allow it to keep playing)
     if (from === currentTrack) {
       if (from > to) {
@@ -128,21 +131,27 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
         await TrackPlayer.remove(from);
       }
     }
-    dispatch(reorderTracks({ mixId, tracks: data }));
   };
 
-  // Set up queue on page load
+  // Set up queue on page load or track list change
   useEffect(() => {
     const setUpQueue = async () => {
       await TrackPlayer.reset();
       await TrackPlayer.add(mix.tracks.map(({ id }) => tracks[id]));
-      await TrackPlayer.skip(0);
+      await skipTo(currentTrack, false);
+      prevTracks.current = mix.tracks;
     }
-    setUpQueue();
+    const prev = prevTracks.current;
+    // Reset queue if a new track has been added to the queue or if a track has been changed
+    if (!prev || mix.tracks.length !== prev.length ||
+      mix.tracks.map(({ id }, i) => prev[i].id === id)
+        .reduce((acc, cur) => acc && cur)) {
+      setUpQueue();
+    }
     return () => {
       TrackPlayer.reset();
     };
-  }, []);
+  }, [mix.tracks]);
 
   // Adjust timer to repeat instead of skipping to next track in selected mode
   useEffect(() => {
@@ -152,14 +161,18 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
       const pos = await TrackPlayer.getPosition();
       const timerId = setTimeout(
         selectedMode ? repeat : skipForward,
-        (mix.tracks[track].end - pos) * 1000,
-        false
+        (mix.tracks[track].end - pos) * 1000
       );
       clearTimeout(playTimer);
       setPlayTimer(timerId);
     };
     changeToFromRepeat(selectedMode);
   }, [selectedMode]);
+
+  // Sync playRef with current value of playing
+  useEffect(() => {
+    playRef.current = playing;
+  }, [playing]);
 
   return (
     <View style={[styles.container, { paddingTop: top, height }]}>
@@ -213,6 +226,12 @@ const MixScreen: FunctionComponent<MixScreenProps> = ({ route, navigation }) => 
         iconName={"add"}
         iconColor={"#fff"}
         iconStyle={styles.addIcon}
+        onPress={() => hapticSelect().then(() => {
+          navigation.navigate(
+            "EditTrackSegment",
+            { mixId }
+          );
+        })}
       />
     </View>
   );

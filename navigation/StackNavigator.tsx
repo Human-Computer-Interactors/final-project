@@ -1,17 +1,31 @@
 import type { FunctionComponent } from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
+  createNativeStackNavigator,
+  NativeStackScreenProps,
+  NativeStackNavigationProp
+} from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import type { PickerProps } from "@react-native-picker/picker";
 import HomeScreen from "../pages/HomeScreen";
 import MixScreen from "../pages/MixScreen";
 import EditTrackSegmentScreen from "../pages/EditTrackSegmentScreen";
+import PickerModalScreen from "../pages/PickerModalScreen";
 
 type StackNavigatorParamList = {
   Home: undefined,
   Mix: { mixId: string },
-  EditTrackSegment: { mixId: string, trackIndex?: number }
+  EditTrackSegment: { mixId: string, trackIndex?: number, trackId?: string },
+  PickerModal: Omit<PickerProps, "onValueChange" | "selectedValue" | "children"> & {
+    selectedValue: string,
+    previousPage: keyof StackNavigatorParamList,
+    pickerId: string,
+    items: { label: string, value: string }[]
+  }
 };
 
-export type NavigatorProps<T extends keyof StackNavigatorParamList>  = NativeStackScreenProps<StackNavigatorParamList, T>;
+export type ScreenProps<T extends keyof StackNavigatorParamList> = NativeStackScreenProps<StackNavigatorParamList, T>;
+export type NavigatorProps = NativeStackNavigationProp<StackNavigatorParamList>;
+export type RouteProps = RouteProp<StackNavigatorParamList>;
 
 const Stack = createNativeStackNavigator<StackNavigatorParamList>();
 
@@ -22,6 +36,11 @@ const StackNavigator: FunctionComponent = () => (
     <Stack.Screen
       name={"EditTrackSegment"}
       component={EditTrackSegmentScreen}
+      options={{ presentation: "transparentModal" }}
+    />
+    <Stack.Screen
+      name={"PickerModal"}
+      component={PickerModalScreen}
       options={{ presentation: "transparentModal" }}
     />
   </Stack.Navigator>

@@ -2,11 +2,11 @@ import type { FunctionComponent } from "react";
 import { Text, View, StyleSheet } from "react-native";
 import AnimatedPressable from "./AnimatedPressable";
 import { FontSize } from "../types/Layout";
-import type { NavigatorProps } from "../navigation/StackNavigator";
+import type { ScreenProps } from "../navigation/StackNavigator";
 import { useAppSelector } from "../redux/hooks";
 import { Colors } from "../types/Colors";
 
-type MixCardProps = MixWithId & Pick<NavigatorProps<"Home">, "navigation">;
+type MixCardProps = MixWithId & Pick<ScreenProps<"Home">, "navigation">;
 
 const MixCard: FunctionComponent<MixCardProps> = ({ id, title, team, tracks, image, navigation }) => {
   const trackData = useAppSelector(({ tracks }) => tracks);

@@ -1,4 +1,4 @@
-const Mixes: StringToTypeMap<Mix> = {
+const Mixes: Record<string, Mix> = {
   "mix-1": {
     "title": "Texas Talaash 4.0 Minza",
     "team": "Talaash",
