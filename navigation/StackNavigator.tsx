@@ -10,16 +10,16 @@ import HomeScreen from "../pages/HomeScreen";
 import MixScreen from "../pages/MixScreen";
 import EditTrackSegmentScreen from "../pages/EditTrackSegmentScreen";
 import PickerModalScreen from "../pages/PickerModalScreen";
+import type { ItemValue } from "@react-native-picker/picker/typings/Picker";
+import type { TempDataState } from "../redux/slices/tempDataSlice";
 
 type StackNavigatorParamList = {
   Home: undefined,
   Mix: { mixId: string },
-  EditTrackSegment: { mixId: string, trackIndex?: number, trackId?: string },
+  EditTrackSegment: { mixId: string, trackIndex?: number },
   PickerModal: Omit<PickerProps, "onValueChange" | "selectedValue" | "children"> & {
-    selectedValue: string,
-    previousPage: keyof StackNavigatorParamList,
-    pickerId: string,
-    items: { label: string, value: string }[]
+    dataId: keyof TempDataState,
+    items: { label: string, value: ItemValue | null }[]
   }
 };
 

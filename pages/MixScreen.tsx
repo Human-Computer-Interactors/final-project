@@ -12,7 +12,7 @@ import type { ScreenProps } from "../navigation/StackNavigator";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontSize } from "../types/Layout";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { reorderTracks } from "../redux/mixesSlice";
+import { reorderTracks } from "../redux/slices/mixesSlice";
 import ClipsViewer from "../components/ClipsViewer";
 import MediaControls from "../components/MediaControls";
 import DraggableTracks from "../components/DraggableTracks";

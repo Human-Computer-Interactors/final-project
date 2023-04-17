@@ -15,7 +15,8 @@ import AnimatedPressable from "../components/AnimatedPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { FontSize } from "../types/Layout";
-import { addTrackSegment, editTrackSegment } from "../redux/mixesSlice";
+import { addTrackSegment, editTrackSegment } from "../redux/slices/mixesSlice";
+import { setDataField } from "../redux/slices/tempDataSlice";
 
 type EditTrackSegmentScreenProps = ScreenProps<"EditTrackSegment">;
 
@@ -25,17 +26,23 @@ const INPUTS = [
 ];
 
 const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreenProps> = ({ route, navigation }) => {
-  const { mixId, trackIndex, trackId } = route.params;
+  const { mixId, trackIndex } = route.params;
   const tracks = useAppSelector(({ tracks }) => tracks);
 
   // Only for when screen is being edited
   const trackSegment = (trackIndex || trackIndex === 0)
     && useAppSelector(({ mixes }) => mixes[mixId].tracks[trackIndex]);
+  const trackId = useAppSelector(({ tempData }) => tempData.trackSegmentTrackId);
 
   const [segment, setSegment] = useState<Partial<TrackSegment>>(trackSegment || {});
 
   const { top, bottom } = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+
+  const goBack = () => {
+    navigation.pop();
+    dispatch(setDataField({ key: "trackSegmentTrackId", value: null }));
+  };
 
   const setTrackId = (id) => {
     setSegment((prev) => ({ ...prev, id }))
@@ -77,11 +84,17 @@ const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreenProps> = (
     } else {
       dispatch(addTrackSegment({ mixId, ...trackSegment }));
     }
-    navigation.pop();
+    goBack();
   };
 
   useEffect(() => {
-    if (trackId) {
+    if (trackSegment) {
+      dispatch(setDataField({ key: "trackSegmentTrackId", value: trackSegment.id }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (trackId || !trackSegment) {
       setTrackId(trackId);
     }
   }, [trackId]);
@@ -99,20 +112,17 @@ const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreenProps> = (
         style={styles.closeButton}
         iconName={"close"}
         iconColor={"#000"}
-        onPress={() => navigation.pop()}
+        onPress={goBack}
       />
       <Picker
         style={styles.title}
-        selectedValue={segment.id || "select"}
+        includePlaceholder={!trackSegment}
+        selectedValue={segment.id}
         onValueChange={(value) => setTrackId(value as string)}
-        getDisplayValue={(id) => tracks[id]?.title || "Please select"}
-        pickerId={"trackId"}
-        items={[
-          { label: "Please select", value: "select" },
-          ...Object.keys(tracks).map((id) => ({ label: tracks[id].title, value: id }))
-        ]}
+        getDisplayValue={(id) => tracks[id].title}
+        dataId={"trackSegmentTrackId"}
+        items={Object.keys(tracks)}
       />
-      {/*<Text style={styles.title}>{trackId ? tracks[trackId].title || "Please select"}</Text>*/}
       <View style={styles.form}>
         {INPUTS.map(({ key, title }) => (
           <View style={styles.inputRow} key={key}>
