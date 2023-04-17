@@ -1,14 +1,14 @@
 import { Platform } from "react-native";
 import { selectionAsync } from "expo-haptics";
 
-export const objectToArray = <T>(mixes: StringToTypeMap<T>): (T & { id: string })[] => (
+export const objectToArray = <T>(mixes: Record<string, T>): (T & { id: string })[] => (
   Object.keys(mixes).map((id) => ({
     id,
     ...mixes[id]
   }))
 );
 
-export const shallowEqual = <T>(o1: StringToTypeMap<T>, o2: StringToTypeMap<T>): boolean => {
+export const shallowEqual = <T>(o1: Record<string, T>, o2: Record<string, T>): boolean => {
   const k1 = Object.keys(o1);
   const k2 = Object.keys(o2);
   if (k1.length !== k2.length) return false;

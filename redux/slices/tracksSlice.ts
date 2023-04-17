@@ -1,8 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import uuid from "react-native-uuid";
-import tracksData from "../data/tracks";
+import tracksData from "../../data/tracks";
 
-type TracksState = StringToTypeMap<TrackMetadata>;
+type TracksState = Record<string, TrackMetadata>;
 
 const initialState: TracksState = tracksData;
 

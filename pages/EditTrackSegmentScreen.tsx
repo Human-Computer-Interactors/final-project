@@ -1,35 +1,52 @@
 import type { FunctionComponent } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View
 } from "react-native";
-import type { NavigatorProps } from "../navigation/StackNavigator";
+import Picker from "../components/Picker";
+import type { ScreenProps } from "../navigation/StackNavigator";
 import IconButton from "../components/IconButton";
 import AnimatedPressable from "../components/AnimatedPressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { FontSize } from "../types/Layout";
-import { addTrackSegment, editTrackSegment } from "../redux/mixesSlice";
+import { addTrackSegment, editTrackSegment } from "../redux/slices/mixesSlice";
+import { setDataField } from "../redux/slices/tempDataSlice";
 
-type EditTrackSegmentScreen = NavigatorProps<"EditTrackSegment">;
+type EditTrackSegmentScreenProps = ScreenProps<"EditTrackSegment">;
 
 const INPUTS = [
   { key: "start", title: "Start"},
   { key: "end", title: "End"}
 ];
 
-const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreen> = ({ route, navigation }) => {
+const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreenProps> = ({ route, navigation }) => {
   const { mixId, trackIndex } = route.params;
-  const trackSegment = useAppSelector(({ mixes }) => mixes[mixId].tracks[trackIndex]);
-  const track = useAppSelector(({ tracks }) => tracks[trackSegment.id]);
+  const tracks = useAppSelector(({ tracks }) => tracks);
+
+  // Only for when screen is being edited
+  const trackSegment = (trackIndex || trackIndex === 0)
+    && useAppSelector(({ mixes }) => mixes[mixId].tracks[trackIndex]);
+  const trackId = useAppSelector(({ tempData }) => tempData.trackSegmentTrackId);
+
+  const [segment, setSegment] = useState<Partial<TrackSegment>>(trackSegment || {});
+
   const { top, bottom } = useSafeAreaInsets();
   const dispatch = useAppDispatch();
 
-  const [segment, setSegment] = useState<Partial<TrackSegment>>(trackSegment);
+  const goBack = () => {
+    navigation.pop();
+    dispatch(setDataField({ key: "trackSegmentTrackId", value: null }));
+  };
+
+  const setTrackId = (id) => {
+    setSegment((prev) => ({ ...prev, id }))
+  };
 
   const setIntegerField = (key: string, value: string) => {
     let intValue = value.trim().length === 0 ? 0 : parseInt(value);
@@ -39,14 +56,48 @@ const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreen> = ({ rou
     setSegment((prev) => ({ ...prev, [key]: intValue }));
   };
 
-  const update = () => {
-    if (trackIndex || trackIndex === 0) {
-      dispatch(editTrackSegment({ mixId, trackIndex, ...(segment as TrackSegment) }));
+  const validate = (segment: Partial<TrackSegment>): boolean => {
+    if (!segment.id) {
+      Alert.alert("Invalid submission", "Please select a track");
+    } else if (segment.start >= segment.end) {
+      Alert.alert("Invalid submission", "End of segment must be after start");
     } else {
-      dispatch(addTrackSegment({ mixId, ...(segment as TrackSegment) }));
+      return true;
     }
-    navigation.pop();
+    return false;
+  }
+
+  const update = () => {
+    const cleanedSegment: Partial<TrackSegment> = { ...segment };
+    if (!cleanedSegment.start) {
+      cleanedSegment.start = 0;
+    }
+    if (!cleanedSegment.end) {
+      cleanedSegment.end = 0;
+    }
+    if (!validate(cleanedSegment)) {
+      return;
+    }
+    const trackSegment = cleanedSegment as TrackSegment;
+    if (trackIndex || trackIndex === 0) {
+      dispatch(editTrackSegment({ mixId, trackIndex, ...trackSegment }));
+    } else {
+      dispatch(addTrackSegment({ mixId, ...trackSegment }));
+    }
+    goBack();
   };
+
+  useEffect(() => {
+    if (trackSegment) {
+      dispatch(setDataField({ key: "trackSegmentTrackId", value: trackSegment.id }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (trackId || !trackSegment) {
+      setTrackId(trackId);
+    }
+  }, [trackId]);
 
   return (
     <ScrollView
@@ -54,23 +105,31 @@ const EditTrackSegmentScreen: FunctionComponent<EditTrackSegmentScreen> = ({ rou
       style={styles.container}
       contentContainerStyle={[
         styles.contentContainer,
-        { paddingTop: top + 30, paddingBottom: bottom }
+        { paddingTop: top, paddingBottom: bottom }
       ]}
     >
       <IconButton
         style={styles.closeButton}
         iconName={"close"}
         iconColor={"#000"}
-        onPress={() => navigation.pop()}
+        onPress={goBack}
       />
-      <Text style={styles.title}>{track.title}</Text>
+      <Picker
+        style={styles.title}
+        includePlaceholder={!trackSegment}
+        selectedValue={segment.id}
+        onValueChange={(value) => setTrackId(value as string)}
+        getDisplayValue={(id) => tracks[id].title}
+        dataId={"trackSegmentTrackId"}
+        items={Object.keys(tracks)}
+      />
       <View style={styles.form}>
         {INPUTS.map(({ key, title }) => (
           <View style={styles.inputRow} key={key}>
             <Text style={styles.inputLabel}>{title}:</Text>
             <TextInput
               style={styles.textInput}
-              value={segment[key].toString()}
+              value={(segment[key] || 0).toString()}
               keyboardType={"number-pad"}
               returnKeyType={"next"}
               onChangeText={(value) => setIntegerField(key, value)}

@@ -10,12 +10,12 @@ import {
 import MixCard from "../components/MixCard";
 import { FontSize } from "../types/Layout";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { NavigatorProps } from "../navigation/StackNavigator";
+import type { ScreenProps } from "../navigation/StackNavigator";
 import IconButton from "../components/IconButton";
 import { objectToArray } from "../utilities";
 import { useAppSelector } from "../redux/hooks";
 
-type HomeScreenProps = NavigatorProps<"Home">;
+type HomeScreenProps = ScreenProps<"Home">;
 
 const HomeScreen: FunctionComponent<HomeScreenProps> = ({ navigation }) => {
 	const mixes: MixWithId[] = useAppSelector(({ mixes }) =>
